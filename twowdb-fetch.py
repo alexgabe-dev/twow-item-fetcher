@@ -281,13 +281,71 @@ def display_and_save(item_id, display_name_hint):
     action = input("\n[1] Download  |  [Enter] Cancel: ")
     if action == '1': save_item_to_disk(full_data)
 
+def bulk_fetch():
+    print("\n📦 BULK FETCH MODE")
+    print("Paste your list of item names below.")
+    print("Enter 'END' on a new line to start processing.")
+    print("-" * 40)
+    
+    item_names = []
+    while True:
+        line = input().strip()
+        if line == "END": break
+        if line: item_names.append(line)
+        
+    print(f"\n🚀 Processing {len(item_names)} items...")
+    
+    for name in item_names:
+        print(f"\n🔎 Looking for: {name}")
+        results = search_items_only(name)
+        
+        target_item = None
+        
+        # 1. Check for exact name match (case-insensitive)
+        for res in results:
+            if res['name'].lower() == name.lower():
+                target_item = res
+                break
+        
+        # 2. If no exact match, but only one result found
+        if not target_item and len(results) == 1:
+            target_item = results[0]
+            
+        if target_item:
+            print(f"   ✅ Found: {target_item['name']} (ID: {target_item['id']})")
+            full_data = fetch_full_item_data(target_item['id'])
+            if full_data:
+                save_item_to_disk(full_data)
+            else:
+                print("   ❌ Failed to download data.")
+        else:
+            if not results:
+                print("   ❌ No results found.")
+            else:
+                print(f"   ⚠️  Ambiguous results ({len(results)} found). Skipping.")
+
 def main():
     while True:
         print("\n" + "="*40)
         print("🐢 TURTLE FORGE ITEM SEARCHER")
         print("="*40)
-        query = input("Enter item name (or 'q'): ").strip()
-        if query.lower() == 'q': break
+        print("[1] Search Item")
+        print("[2] Bulk Download (Paste List)")
+        print("[q] Quit")
+        
+        choice = input("\nSelect option: ").strip().lower()
+        
+        if choice == 'q': break
+        elif choice == '2':
+            bulk_fetch()
+            continue
+        elif choice == '1':
+            pass # Continue to search logic below
+        else:
+            continue
+
+        query = input("Enter item name (or 'b' to back): ").strip()
+        if query.lower() == 'b': continue
         if len(query) < 2: continue
         results = search_items_only(query)
         if not results:
