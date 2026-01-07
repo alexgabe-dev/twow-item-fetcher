@@ -26,8 +26,8 @@ Built for developers and data hoarders who need structured JSON data and icons f
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/twowdb.git
-   cd twowdb
+   git clone git@github.com:alexgabe-dev/twow-item-fetcher.git
+   cd twow-item-fetcher
    ```
 
 2. Install dependencies:
