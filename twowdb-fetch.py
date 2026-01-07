@@ -41,7 +41,7 @@ ZONES = {
 
 # Try loading extended zones
 try:
-    with open(os.path.join(DATA_DIR, "zones.json"), "r", encoding="utf-8") as f:
+    with open("zones.json", "r", encoding="utf-8") as f:
         extra_zones = json.load(f)
         for zid, zname in extra_zones.items():
             ZONES[int(zid)] = zname
