@@ -89,3 +89,5 @@ This tool is an unofficial scraper for educational and personal use. Please resp
 
 ---
 *Happy looting!* 🐢
+
+**Made by Alex Gabe**
