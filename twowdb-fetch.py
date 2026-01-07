@@ -39,6 +39,14 @@ ZONES = {
     46: "Burning Steppes", 1377: "Silithus", 41: "Deadwind Pass", 618: "Winterspring", 139: "Eastern Plaguelands"
 }
 
+# Try loading extended zones
+try:
+    with open(os.path.join(DATA_DIR, "zones.json"), "r", encoding="utf-8") as f:
+        extra_zones = json.load(f)
+        for zid, zname in extra_zones.items():
+            ZONES[int(zid)] = zname
+except: pass
+
 ITEM_NAME_CACHE = {}
 
 # Ensure directories exist
@@ -73,7 +81,12 @@ def parse_tooltip_structured(tooltip_div):
         "name": None, "quality": "Common", "css_class": "q-common",
         "binding": None, "slot": None, "armor_type": None, "armor_value": None,
         "stats_normalized": {}, "resistances": {}, "effects": [], 
-        "set_bonuses": [], "classes": [], "level_req": None, "raw_text": ""
+        "set_bonuses": [], "classes": [], "level_req": None, "raw_text": "",
+        "requirements": {
+            "reputation": None,
+            "class_req": [],
+            "unique_equipped": False
+        }
     }
     if not tooltip_div: return data
     raw_text = tooltip_div.get_text(separator="\n").strip()
@@ -92,6 +105,18 @@ def parse_tooltip_structured(tooltip_div):
     i = 1
     while i < len(lines):
         line = lines[i]
+        
+        # Requirement Parsing
+        rep_match = re.search(r"Requires (.+?) - (Neutral|Friendly|Honored|Revered|Exalted)", line)
+        if rep_match:
+            data["requirements"]["reputation"] = {
+                "faction": rep_match.group(1),
+                "level": rep_match.group(2)
+            }
+        
+        if line == "Unique-Equipped":
+            data["requirements"]["unique_equipped"] = True
+            
         if "Binds when" in line or "Soulbound" in line or line == "Unique":
             data["binding"] = line
         elif line in ["Head", "Neck", "Shoulder", "Back", "Chest", "Shirt", "Tabard", "Wrist", "Hands", "Waist", "Legs", "Feet", "Finger", "Trinket", "Main Hand", "Off Hand", "One-Hand", "Two-Hand", "Ranged", "Relic", "Held In Off-hand", "Projectile", "Wand"]:
@@ -124,6 +149,7 @@ def parse_tooltip_structured(tooltip_div):
             except: pass
         elif line.startswith("Classes:"):
             data["classes"] = [c.strip() for c in line.replace("Classes:", "").split(",")]
+            data["requirements"]["class_req"] = data["classes"]
         elif line.startswith("Equip:") or line.startswith("Use:") or line.startswith("Chance on hit:"):
             effect_type = line.split(":")[0]
             desc = line.replace(effect_type, "").strip()
